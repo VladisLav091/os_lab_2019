@@ -1,0 +1,2 @@
+gcc -o sequential_min_max sequential_min_max.c find_min_max.c utils.c
+./sequential_min_max 3 3
