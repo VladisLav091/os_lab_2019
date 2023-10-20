@@ -2,9 +2,9 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
-
 #include <pthread.h>
 #include <getopt.h>
+#include <time.h> 
 
 #include "utils.h"
 
@@ -86,6 +86,8 @@ int main(int argc, char **argv) {
     }
   }
 
+  clock_t start_time = clock();
+
   int total_sum = 0;
   for (uint32_t i = 0; i < threads_num; i++) {
     int sum = 0;
@@ -93,7 +95,13 @@ int main(int argc, char **argv) {
     total_sum += sum;
   }
 
+  clock_t end_time = clock(); 
+
   free(array);
   printf("Total: %d\n", total_sum / threads_num);
+
+  double duration = (double)(end_time - start_time) / CLOCKS_PER_SEC;
+  printf("Время выполнения: %f секунд.\n", duration);
+
   return 0;
 }
