@@ -1,77 +1,63 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <pthread.h>
 
-// Глобальные мьютексы
+// Объявление двух мьютексов
 pthread_mutex_t mutex1;
 pthread_mutex_t mutex2;
 
-void* Thread1(void* arg) {
-    // Блокируем mutex1
-    // pthread_mutex_lock(&mutex1);
-    printf("Thread 1: Locked mutex1\n");
-
-    // sПодождем некоторое время
-    usleep(10);
-
-    // Теперь попробуем заблокировать mutex2 (deadlock)
-    pthread_mutex_lock(&mutex2);
-    printf("Thread 1: Locked mutex2\n");
-
-    // Должны выполниться какие-то действия
-    printf("dfdasd\n");
-    // Разблокируем mutex2
-    pthread_mutex_unlock(&mutex2);
-    printf("Thread 1: Unlocked mutex2\n");
-
-    // Разблокируем mutex1
+// Функция для потока 1
+void* thread1_function(void* arg) {
+    // Захватываем первый мьютекс
+    pthread_mutex_lock(&mutex1);
+    printf("Поток 1: Захватил mutex1\n");
+    
+    // Пытаемся захватить второй мьютекс (deadlock)
+    // pthread_mutex_lock(&mutex2);
+    printf("Поток 1: Захватил mutex2\n");
+    
+    // Освобождаем мьютексы
     pthread_mutex_unlock(&mutex1);
-    printf("Thread 1: Unlocked mutex1\n");
-
+    pthread_mutex_unlock(&mutex2);
+    
     return NULL;
 }
 
-void* Thread2(void* arg) {
-    // Блокируем mutex2
+// Функция для потока 2
+void* thread2_function(void* arg) {
+    // Захватываем второй мьютекс
     pthread_mutex_lock(&mutex2);
-    printf("Thread 2: Locked mutex2\n");
-
-    // Подождем некоторое время
-    usleep(10);
-
-    // Теперь попробуем заблокировать mutex1 (deadlock)
+    printf("Поток 2: Захватил mutex2\n");
+    
+    // Пытаемся захватить первый мьютекс (deadlock)
     pthread_mutex_lock(&mutex1);
-    printf("Thread 2: Locked mutex1\n");
-
-    // Должны выполниться какие-то действия
-    printf("xyi\n");
-    // Разблокируем mutex1
+    printf("Поток 2: Захватил mutex1\n");
+    
+    // Освобождаем мьютексы
     pthread_mutex_unlock(&mutex1);
-    printf("Thread 2: Unlocked mutex1\n");
-
-    // Разблокируем mutex2
     pthread_mutex_unlock(&mutex2);
-    printf("Thread 2: Unlocked mutex2\n");
-
+    
     return NULL;
 }
 
 int main() {
+    pthread_t thread1, thread2;
+    
     // Инициализация мьютексов
     pthread_mutex_init(&mutex1, NULL);
     pthread_mutex_init(&mutex2, NULL);
-
-    // Создание двух потоков
-    pthread_t thread_id1, thread_id2;
-    pthread_create(&thread_id1, NULL, Thread1, NULL);
-    pthread_create(&thread_id2, NULL, Thread2, NULL);
-
+    
+    // Создание потоков
+    pthread_create(&thread1, NULL, thread1_function, NULL);
+    pthread_create(&thread2, NULL, thread2_function, NULL);
+    
     // Ожидание завершения потоков
-    pthread_join(thread_id1, NULL);
-    pthread_join(thread_id2, NULL);
-
+    pthread_join(thread1, NULL);
+    pthread_join(thread2, NULL);
+    
     // Уничтожение мьютексов
     pthread_mutex_destroy(&mutex1);
     pthread_mutex_destroy(&mutex2);
-
+    
     return 0;
 }
